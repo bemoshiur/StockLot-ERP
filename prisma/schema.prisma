@@ -34,6 +34,7 @@ model ProductStyle {
   standardCost   Decimal      @default(0)
   active         Boolean      @default(true)
   aliases        StyleAlias[]
+  saleLines      SaleLine[]
   createdById    String?
   updatedById    String?
   createdAt      DateTime     @default(now())
@@ -58,6 +59,8 @@ model Customer {
   creditTerms       String?
   openingDueBalance Decimal   @default(0)
   active            Boolean   @default(true)
+  challans          SalesChallan[]
+  receivables       ReceivableEntry[]
   createdById       String?
   updatedById       String?
   createdAt         DateTime  @default(now())
@@ -82,10 +85,11 @@ model Supplier {
 }
 
 model Location {
-  id           String     @id @default(cuid())
+  id           String         @id @default(cuid())
   areaName     String
   marketOrShop String?
   customers    Customer[]
+  challans     SalesChallan[]
   createdById  String?
   updatedById  String?
   createdAt    DateTime   @default(now())
@@ -105,4 +109,72 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([at])
+}
+
+model SalesChallan {
+  id          String           @id @default(cuid())
+  challanNo   String?
+  saleDate    DateTime
+  periodMonth String // "YYYY-MM" grouping key
+  customerId  String
+  customer    Customer         @relation(fields: [customerId], references: [id])
+  locationId  String?
+  location    Location?        @relation(fields: [locationId], references: [id])
+  status      String // DRAFT|DISPATCHED|PARTIALLY_PAID|PAID
+  remarks     String?
+  lines       SaleLine[]
+  payments    PaymentReceipt[]
+  createdById String?
+  updatedById String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([periodMonth])
+  @@index([saleDate])
+  @@index([customerId])
+}
+
+model SaleLine {
+  id               String       @id @default(cuid())
+  challanId        String
+  challan          SalesChallan @relation(fields: [challanId], references: [id], onDelete: Cascade)
+  styleId          String
+  style            ProductStyle @relation(fields: [styleId], references: [id])
+  quantity         Int
+  unitPrice        Decimal
+  unitCostSnapshot Decimal
+  lineAmount       Decimal
+  lineGrossProfit  Decimal
+
+  @@index([challanId])
+  @@index([styleId])
+}
+
+model PaymentReceipt {
+  id               String       @id @default(cuid())
+  challanId        String
+  challan          SalesChallan @relation(fields: [challanId], references: [id], onDelete: Cascade)
+  receiptDate      DateTime
+  amountCollected  Decimal
+  discountOrWaiver Decimal      @default(0)
+  method           String // cash|bank|bKash|Nagad|account
+  notes            String?
+  collectedById    String?
+  createdAt        DateTime     @default(now())
+
+  @@index([challanId])
+}
+
+model ReceivableEntry {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  challanId  String?
+  entryType  String // INVOICE|PAYMENT|WAIVER|OPENING
+  amount     Decimal // signed: invoice +, payment/waiver -
+  entryDate  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+  @@index([challanId])
 }
