@@ -1,13 +1,11 @@
 name: Publish container
 
 # Builds the production image and pushes it to GitHub Container Registry (GHCR)
-# so it appears under the repo's "Packages". Runs on a published release, on a
-# version tag, or manually.
+# so it appears under the repo's "Packages". Runs on a published release (the
+# release's tag drives the version tags) or on manual dispatch.
 on:
   release:
     types: [published]
-  push:
-    tags: ["v*"]
   workflow_dispatch:
 
 env:
