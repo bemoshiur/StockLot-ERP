@@ -8,6 +8,8 @@ const TABS = [
   { href: '/reports/daybook', label: 'Day book' },
   { href: '/reports/purchases', label: 'Purchases' },
   { href: '/reports/cashflow', label: 'Cash flow' },
+  { href: '/reports/cashbook', label: 'Cash book' },
+  { href: '/reports/balance-sheet', label: 'Balance sheet' },
 ]
 
 export function ReportTabs() {
