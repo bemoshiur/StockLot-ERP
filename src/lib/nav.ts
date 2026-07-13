@@ -2,6 +2,8 @@ import type { Action } from '@/lib/rbac'
 import {
   LayoutDashboard,
   LineChart,
+  BarChart3,
+  Scale,
   ShoppingCart,
   HandCoins,
   Package,
@@ -33,6 +35,8 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, group: 'Main' },
   { href: '/reports', label: 'Reports', icon: LineChart, group: 'Main', action: 'reports.read' },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3, group: 'Main', action: 'reports.read' },
+  { href: '/inventory/valuation', label: 'Stock value', icon: Scale, group: 'Operations', action: 'inventory.read' },
 
   { href: '/sales', label: 'Sales', icon: ShoppingCart, group: 'Operations', action: 'sales.read' },
   { href: '/dues', label: 'Dues', icon: HandCoins, group: 'Operations', action: 'sales.read' },
