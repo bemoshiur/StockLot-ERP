@@ -81,8 +81,29 @@ async function main() {
     await db.productStyle.upsert({ where: { styleCode: s.styleCode }, update: {}, create: s })
   }
 
+  // 6. Expense categories (exact names from the June'26 Transaction Report)
+  const cats: [string, number][] = [
+    ['Daily Expenditure', 1],
+    ['Suppliers & Others', 2],
+    ['Office Rent & Others', 3],
+    ['Salary & Honorarium', 4],
+    ['Bonus & Others', 5],
+  ]
+  for (const [name, sortOrder] of cats)
+    await db.expenseCategory.upsert({ where: { name }, update: { sortOrder }, create: { name, sortOrder } })
+
+  // 7. Partners (opening capital from Monthly Summery; Mr. Sharif opening needs owner confirmation)
+  const partners: [string, number][] = [
+    ['SaimBabor', 21347],
+    ['ShahAlam Bhai', 12810],
+    ['Mr. Sharif', 0],
+  ]
+  for (const [name, openingCapitalBalance] of partners)
+    await db.partner.upsert({ where: { name }, update: {}, create: { name, openingCapitalBalance } })
+
   console.log(
-    `Seeded: owner (${ownerEmail} / changeme123), ${areas.length} locations, 1 supplier, ${customers.length} customers, ${styles.length} styles.`,
+    `Seeded: owner (${ownerEmail} / changeme123), ${areas.length} locations, 1 supplier, ` +
+      `${customers.length} customers, ${styles.length} styles, ${cats.length} expense categories, ${partners.length} partners.`,
   )
 }
 

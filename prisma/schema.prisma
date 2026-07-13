@@ -212,3 +212,76 @@ model ReceiptLine {
   @@index([receiptId])
   @@index([styleId])
 }
+
+model ExpenseCategory {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  sortOrder Int       @default(0)
+  expenses  Expense[]
+}
+
+model Expense {
+  id            String          @id @default(cuid())
+  expenseDate   DateTime
+  periodMonth   String // "YYYY-MM"
+  categoryId    String
+  category      ExpenseCategory @relation(fields: [categoryId], references: [id])
+  payeeOrVendor String?
+  detail        String?
+  amount        Decimal // billed
+  paidAmount    Decimal         @default(0) // actually paid
+  isAdvance     Boolean         @default(false) // advances kept out of period operating expense
+  authorizedBy  String?
+  remarks       String?
+  createdById   String?
+  updatedById   String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([periodMonth])
+  @@index([categoryId])
+  @@index([expenseDate])
+}
+
+model Partner {
+  id                    String            @id @default(cuid())
+  name                  String            @unique
+  openingCapitalBalance Decimal           @default(0)
+  capitalMovements      CapitalMovement[]
+  deposits              TreasuryDeposit[]
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model CapitalMovement {
+  id           String   @id @default(cuid())
+  partnerId    String
+  partner      Partner  @relation(fields: [partnerId], references: [id])
+  periodMonth  String
+  movementType String // INVESTMENT|WITHDRAWAL|SETTLEMENT
+  amount       Decimal // signed by convention: investment +, withdrawal -
+  date         DateTime
+  notes        String?
+  createdById  String?
+  createdAt    DateTime @default(now())
+
+  @@index([partnerId])
+  @@index([periodMonth])
+}
+
+model TreasuryDeposit {
+  id             String   @id @default(cuid())
+  periodMonth    String
+  depositDate    DateTime
+  payerPartnerId String?
+  payer          Partner? @relation(fields: [payerPartnerId], references: [id])
+  amount         Decimal
+  method         String // cash|bank|account
+  destination    String   @default("Alib")
+  otherIncome    Decimal  @default(0)
+  remarks        String?
+  createdById    String?
+  createdAt      DateTime @default(now())
+
+  @@index([periodMonth])
+}
