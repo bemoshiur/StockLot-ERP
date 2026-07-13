@@ -1,6 +1,19 @@
 # StockLot ERP — Feature Roadmap
 
-Prioritized backlog from an automated feature audit (5 dimension assessors + synthesis). P0 = build soon, P1 = valuable, P2 = nice-to-have. Effort S/M/L. Items 2-4 (import/export/print) are being built now.
+Prioritized backlog from an automated feature audit (5 dimension assessors + synthesis). P0 = build soon, P1 = valuable, P2 = nice-to-have. Effort S/M/L.
+
+## Shipped (as of 2026-07-13)
+
+P0/P1 core plus these audit items are now live in production:
+
+- Company letterhead, Excel/CSV importer, CSV/PDF export, printable challan/GRN, user profile, audit log
+- Customer statement/khata, style reconciliation/merge, sales returns + void/draft lifecycle, Accounts Payable + period close/lock, list search & pagination
+- Sales analytics + stock valuation, reports pack (day book, purchases, cash flow, printable GRN)
+- **Stock adjustments** (#19), **reorder/low-stock alerts** (#20, in-app), **purchase returns to supplier** (#29)
+- **Cash book** and **balance sheet / statement of financial position** (#35) — derived from live transactions on a standard-cost basis
+- **Global search**, **manual data backup export** (#34), **PWA installable app + offline fallback** (#39, offline sale entry still pending), **bulk activate/deactivate** on styles (#40)
+
+Still open: full double-entry journal/GL/trial balance (#33 — deferred; the business runs standard-cost, so a formal GL needs a purchase-price-variance decision from the owner), scheduled/automated backups, offline write queue, VAT, email/WhatsApp alert digests. See items below.
 
 ## P0
 
