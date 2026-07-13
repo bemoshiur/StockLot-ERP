@@ -15,6 +15,7 @@ function parse(formData: FormData) {
     contactPhone: formData.get('contactPhone'),
     address: formData.get('address'),
     notes: formData.get('notes'),
+    openingPayableBalance: formData.get('openingPayableBalance'),
   })
 }
 
@@ -54,7 +55,13 @@ export async function updateSupplier(_prev: FormState, formData: FormData): Prom
       entityId: id,
       action: 'UPDATE',
       changes: diff(
-        { name: before.name, contactPhone: before.contactPhone, address: before.address, notes: before.notes },
+        {
+          name: before.name,
+          contactPhone: before.contactPhone,
+          address: before.address,
+          notes: before.notes,
+          openingPayableBalance: before.openingPayableBalance.toString(),
+        },
         parsed.data,
       ),
     })

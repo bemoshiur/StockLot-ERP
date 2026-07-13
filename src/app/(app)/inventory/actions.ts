@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { requireCan } from '@/lib/guards'
 import { writeAudit } from '@/lib/audit'
 import { receiptSchema } from '@/lib/validators/receipt'
+import { periodLockError } from '@/lib/period'
 import type { FormState } from '@/components/ui'
 
 export async function createReceipt(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -33,14 +34,21 @@ export async function createReceipt(_prev: FormState, formData: FormData): Promi
   const found = await db.productStyle.count({ where: { id: { in: styleIds } } })
   if (found !== styleIds.length) return { error: 'One of the selected styles no longer exists' }
 
+  const periodMonth = data.receiptDate.slice(0, 7)
+  const lock = await periodLockError(periodMonth)
+  if (lock) return { error: lock }
+
+  const billAmount = Number(formData.get('billAmount') ?? 0) || 0
+
   const receiptDate = new Date(data.receiptDate)
   const receipt = await db.purchaseReceipt.create({
     data: {
       challanNo: data.challanNo ?? null,
       receiptDate,
-      periodMonth: data.receiptDate.slice(0, 7),
+      periodMonth,
       supplierId: data.supplierId ?? null,
       isOpeningStock: data.isOpeningStock,
+      billAmount,
       remarks: data.remarks ?? null,
       createdById: user.id,
       updatedById: user.id,

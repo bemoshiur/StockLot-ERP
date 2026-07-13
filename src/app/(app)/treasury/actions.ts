@@ -6,6 +6,7 @@ import { requireCan } from '@/lib/guards'
 import { writeAudit } from '@/lib/audit'
 import { signedMovementAmount } from '@/lib/finance'
 import { capitalMovementSchema, treasuryDepositSchema } from '@/lib/validators/treasury'
+import { periodLockError } from '@/lib/period'
 import type { FormState } from '@/components/ui'
 
 export async function addCapitalMovement(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -19,6 +20,8 @@ export async function addCapitalMovement(_prev: FormState, formData: FormData): 
   })
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
   const d = parsed.data
+  const lock = await periodLockError(d.date.slice(0, 7))
+  if (lock) return { error: lock }
 
   const created = await db.capitalMovement.create({
     data: {
@@ -49,6 +52,8 @@ export async function addDeposit(_prev: FormState, formData: FormData): Promise<
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
   const d = parsed.data
   if (d.amount <= 0 && d.otherIncome <= 0) return { error: 'Enter a deposit amount or other income' }
+  const lock = await periodLockError(d.depositDate.slice(0, 7))
+  if (lock) return { error: lock }
 
   const created = await db.treasuryDeposit.create({
     data: {

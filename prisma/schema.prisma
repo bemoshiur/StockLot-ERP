@@ -85,14 +85,16 @@ model Customer {
 }
 
 model Supplier {
-  id           String            @id @default(cuid())
-  name         String
-  contactPhone String?
-  address      String?
-  notes        String?
-  active       Boolean           @default(true)
-  receipts     PurchaseReceipt[]
-  createdById  String?
+  id                    String            @id @default(cuid())
+  name                  String
+  contactPhone          String?
+  address               String?
+  notes                 String?
+  active                Boolean           @default(true)
+  openingPayableBalance Decimal           @default(0)
+  receipts              PurchaseReceipt[]
+  payments              SupplierPayment[]
+  createdById           String?
   updatedById  String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -225,6 +227,32 @@ model ReturnLine {
   @@index([styleId])
 }
 
+model SupplierPayment {
+  id          String   @id @default(cuid())
+  supplierId  String
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+  paymentDate DateTime
+  periodMonth String
+  amount      Decimal
+  method      String // cash|bank|bKash|Nagad|account
+  notes       String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([supplierId])
+  @@index([periodMonth])
+}
+
+model Period {
+  id          String   @id @default(cuid())
+  month       String   @unique // "YYYY-MM"
+  status      String   @default("OPEN") // OPEN|CLOSED
+  closedAt    DateTime?
+  closedById  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model PurchaseReceipt {
   id             String        @id @default(cuid())
   challanNo      String? // supplier delivery note (e.g. 25589)
@@ -233,6 +261,7 @@ model PurchaseReceipt {
   supplierId     String?
   supplier       Supplier?     @relation(fields: [supplierId], references: [id])
   isOpeningStock Boolean       @default(false)
+  billAmount     Decimal       @default(0) // what is owed to the supplier for this lot
   remarks        String?
   lines          ReceiptLine[]
   createdById    String?

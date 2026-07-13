@@ -23,6 +23,7 @@ export default async function EditSupplierPage({ params }: { params: Promise<{ i
           contactPhone: supplier.contactPhone,
           address: supplier.address,
           notes: supplier.notes,
+          openingPayableBalance: supplier.openingPayableBalance.toString(),
         }}
       />
     </div>

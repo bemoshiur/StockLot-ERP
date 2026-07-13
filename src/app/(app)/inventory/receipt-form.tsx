@@ -50,6 +50,9 @@ export function ReceiptForm({
           <Field label="Receipt date" name="receiptDate">
             <TextInput id="receiptDate" name="receiptDate" type="date" defaultValue={today} required />
           </Field>
+          <Field label="Bill amount (BDT)" name="billAmount">
+            <TextInput id="billAmount" name="billAmount" type="number" step="0.01" min="0" defaultValue="0" />
+          </Field>
           <Field label="Challan no (optional)" name="challanNo">
             <TextInput id="challanNo" name="challanNo" placeholder="e.g. 25597" />
           </Field>

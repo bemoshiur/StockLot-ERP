@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { requireCan } from '@/lib/guards'
 import { writeAudit, diff } from '@/lib/audit'
 import { expenseSchema } from '@/lib/validators/expense'
+import { periodLockError } from '@/lib/period'
 import type { FormState } from '@/components/ui'
 
 function parse(formData: FormData) {
@@ -26,6 +27,8 @@ export async function createExpense(_prev: FormState, formData: FormData): Promi
   const parsed = parse(formData)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
   const { data } = parsed
+  const lock = await periodLockError(data.expenseDate.slice(0, 7))
+  if (lock) return { error: lock }
   const created = await db.expense.create({
     data: {
       expenseDate: new Date(data.expenseDate),

@@ -8,6 +8,7 @@ import { writeAudit } from '@/lib/audit'
 import { saleSchema } from '@/lib/validators/sale'
 import { paymentSchema } from '@/lib/validators/payment'
 import { returnSchema } from '@/lib/validators/return'
+import { periodLockError } from '@/lib/period'
 import { lineAmount, lineGrossProfit, challanTotals, challanStatus, roundMoney } from '@/lib/sales'
 import type { FormState } from '@/components/ui'
 
@@ -56,6 +57,8 @@ export async function createSale(_prev: FormState, formData: FormData): Promise<
   )
   const saleDate = new Date(data.saleDate)
   const periodMonth = data.saleDate.slice(0, 7)
+  const lock = await periodLockError(periodMonth)
+  if (lock) return { error: lock }
   // A draft is parked without posting to the receivable ledger or the books.
   const asDraft = formData.get('asDraft') === 'on'
   const status = asDraft ? 'DRAFT' : challanStatus({ invoiceTotal: totals.invoiceTotal, collectedTotal: 0, discountTotal: 0 })
@@ -110,6 +113,8 @@ export async function recordPayment(challanId: string, _prev: FormState, formDat
 
   const challan = await db.salesChallan.findUnique({ where: { id: challanId }, include: { lines: true } })
   if (!challan) return { error: 'Challan not found' }
+  const payLock = await periodLockError(challan.periodMonth)
+  if (payLock) return { error: payLock }
   const lineInputs = challan.lines.map((l) => ({
     quantity: l.quantity,
     unitPrice: Number(l.unitPrice),
@@ -244,6 +249,8 @@ export async function createReturn(challanId: string, _prev: FormState, formData
   const parsed = returnSchema.safeParse({ reason: formData.get('reason'), returnDate: formData.get('returnDate'), lines: raw })
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
   const data = parsed.data
+  const retLock = await periodLockError(data.returnDate.slice(0, 7))
+  if (retLock) return { error: retLock }
   const returnLines = data.lines.filter((l) => l.quantity > 0)
   if (returnLines.length === 0) return { error: 'Enter a return quantity for at least one line' }
 

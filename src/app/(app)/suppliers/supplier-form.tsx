@@ -10,6 +10,7 @@ type SupplierValues = {
   contactPhone?: string | null
   address?: string | null
   notes?: string | null
+  openingPayableBalance?: string | number
 }
 
 export function SupplierForm({
@@ -33,6 +34,16 @@ export function SupplierForm({
           </Field>
           <Field label="Contact phone" name="contactPhone">
             <TextInput id="contactPhone" name="contactPhone" defaultValue={values.contactPhone ?? ''} />
+          </Field>
+          <Field label="Opening payable (BDT)" name="openingPayableBalance">
+            <TextInput
+              id="openingPayableBalance"
+              name="openingPayableBalance"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={values.openingPayableBalance != null ? String(values.openingPayableBalance) : '0'}
+            />
           </Field>
           <div className="sm:col-span-2">
             <Field label="Address" name="address">
