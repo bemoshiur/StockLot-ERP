@@ -18,12 +18,22 @@ export default async function StylesPage() {
         title="Styles"
         action={writable ? { href: '/styles/new', label: 'New style' } : undefined}
         secondary={
-          <a
-            href="/api/export/styles"
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-          >
-            Export CSV
-          </a>
+          <>
+            {writable && (
+              <Link
+                href="/styles/reconcile"
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                Reconcile
+              </Link>
+            )}
+            <a
+              href="/api/export/styles"
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Export CSV
+            </a>
+          </>
         }
       />
       {styles.length === 0 ? (

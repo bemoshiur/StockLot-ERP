@@ -15,7 +15,18 @@ export default async function EditCustomerPage({ params }: { params: Promise<{ i
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <PageHeader title={`Edit: ${customer.name}`} />
+      <PageHeader
+        title={`Edit: ${customer.name}`}
+        secondary={
+          <a
+            href={`/documents/statement/${customer.id}`}
+            target="_blank"
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Statement
+          </a>
+        }
+      />
       <CustomerForm
         action={updateCustomer}
         submitLabel="Save changes"
