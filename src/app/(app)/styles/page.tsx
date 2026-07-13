@@ -3,14 +3,30 @@ import { db } from '@/lib/db'
 import { requireCan } from '@/lib/guards'
 import { can } from '@/lib/rbac'
 import { PageHeader, Card, Badge, EmptyState } from '@/components/ui'
+import { SearchBar, Pagination, parseListParams, PAGE_SIZE } from '@/components/list-controls'
+import type { Prisma } from '@prisma/client'
 
-export default async function StylesPage() {
+export default async function StylesPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const user = await requireCan('styles.write')
   const writable = can(user.role, 'styles.write')
-  const styles = await db.productStyle.findMany({
-    orderBy: [{ active: 'desc' }, { styleName: 'asc' }],
-    include: { _count: { select: { aliases: true } } },
-  })
+  const sp = await searchParams
+  const { q, page } = parseListParams(sp)
+
+  const where: Prisma.ProductStyleWhereInput = q
+    ? { OR: [{ styleName: { contains: q, mode: 'insensitive' } }, { styleCode: { contains: q, mode: 'insensitive' } }] }
+    : {}
+
+  const [styles, total] = await Promise.all([
+    db.productStyle.findMany({
+      where,
+      orderBy: [{ active: 'desc' }, { styleName: 'asc' }],
+      include: { _count: { select: { aliases: true } } },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.productStyle.count({ where }),
+  ])
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -36,6 +52,9 @@ export default async function StylesPage() {
           </>
         }
       />
+      <div className="mb-4">
+        <SearchBar q={q} placeholder="Search styles…" />
+      </div>
       {styles.length === 0 ? (
         <EmptyState message="No styles yet. Add your first garment style to start tracking stock and profit." />
       ) : (
@@ -81,6 +100,7 @@ export default async function StylesPage() {
           </div>
         </Card>
       )}
+      <Pagination page={page} totalPages={totalPages} params={{ q }} />
     </div>
   )
 }

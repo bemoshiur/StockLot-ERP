@@ -1,22 +1,41 @@
 import Link from 'next/link'
+import { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { requireCan } from '@/lib/guards'
 import { can } from '@/lib/rbac'
 import { taka, shortDate } from '@/lib/format'
 import { PageHeader, Card, EmptyState } from '@/components/ui'
+import { SearchBar, Pagination, parseListParams, PAGE_SIZE } from '@/components/list-controls'
 
-export default async function ExpensesPage() {
+export default async function ExpensesPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const user = await requireCan('expenses.read')
   const writable = can(user.role, 'expenses.write')
-  const [expenses, operatingAgg] = await Promise.all([
+  const sp = await searchParams
+  const { q, page } = parseListParams(sp)
+
+  const where: Prisma.ExpenseWhereInput = q
+    ? {
+        OR: [
+          { payeeOrVendor: { contains: q, mode: 'insensitive' } },
+          { detail: { contains: q, mode: 'insensitive' } },
+          { category: { name: { contains: q, mode: 'insensitive' } } },
+        ],
+      }
+    : {}
+
+  const [expenses, total, operatingAgg] = await Promise.all([
     db.expense.findMany({
+      where,
       orderBy: [{ expenseDate: 'desc' }, { createdAt: 'desc' }],
-      take: 300,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       include: { category: true },
     }),
+    db.expense.count({ where }),
     // Total over ALL non-advance expenses, independent of the paginated list above.
     db.expense.aggregate({ _sum: { amount: true }, where: { isAdvance: false } }),
   ])
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   const operatingTotal = Number(operatingAgg._sum.amount ?? 0)
 
@@ -90,6 +109,7 @@ export default async function ExpensesPage() {
           </div>
         </Card>
       )}
+      <Pagination page={page} totalPages={totalPages} params={{ q }} />
     </div>
   )
 }

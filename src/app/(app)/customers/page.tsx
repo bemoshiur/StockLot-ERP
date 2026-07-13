@@ -3,14 +3,30 @@ import { db } from '@/lib/db'
 import { requireCan } from '@/lib/guards'
 import { can } from '@/lib/rbac'
 import { PageHeader, Card, Badge, EmptyState } from '@/components/ui'
+import { SearchBar, Pagination, parseListParams, PAGE_SIZE } from '@/components/list-controls'
+import type { Prisma } from '@prisma/client'
 
-export default async function CustomersPage() {
+export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const user = await requireCan('customers.write')
   const writable = can(user.role, 'customers.write')
-  const customers = await db.customer.findMany({
-    orderBy: [{ active: 'desc' }, { name: 'asc' }],
-    include: { location: true },
-  })
+  const sp = await searchParams
+  const { q, page } = parseListParams(sp)
+
+  const where: Prisma.CustomerWhereInput = q
+    ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { phone: { contains: q } }] }
+    : {}
+
+  const [customers, total] = await Promise.all([
+    db.customer.findMany({
+      where,
+      orderBy: [{ active: 'desc' }, { name: 'asc' }],
+      include: { location: true },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.customer.count({ where }),
+  ])
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -26,6 +42,9 @@ export default async function CustomersPage() {
           </a>
         }
       />
+      <div className="mb-4">
+        <SearchBar q={q} placeholder="Search customers…" />
+      </div>
       {customers.length === 0 ? (
         <EmptyState message="No customers yet. Add your first customer to start tracking sales and dues." />
       ) : (
@@ -64,6 +83,7 @@ export default async function CustomersPage() {
           </div>
         </Card>
       )}
+      <Pagination page={page} totalPages={totalPages} params={{ q }} />
     </div>
   )
 }

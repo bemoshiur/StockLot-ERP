@@ -1,19 +1,39 @@
 import Link from 'next/link'
+import { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { requireCan } from '@/lib/guards'
 import { can } from '@/lib/rbac'
 import { PageHeader, Card, EmptyState } from '@/components/ui'
+import { SearchBar, Pagination, parseListParams, PAGE_SIZE } from '@/components/list-controls'
 import { challanTotals } from '@/lib/sales'
 import { taka, shortDate, STATUS_STYLES, STATUS_LABELS } from '@/lib/format'
 
-export default async function SalesPage() {
+export default async function SalesPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const user = await requireCan('sales.read')
   const writable = can(user.role, 'sales.write')
-  const challans = await db.salesChallan.findMany({
-    orderBy: [{ saleDate: 'desc' }, { createdAt: 'desc' }],
-    include: { customer: true, lines: true, payments: true },
-    take: 200,
-  })
+  const sp = await searchParams
+  const { q, page } = parseListParams(sp)
+
+  const where: Prisma.SalesChallanWhereInput = q
+    ? {
+        OR: [
+          { challanNo: { contains: q } },
+          { customer: { name: { contains: q, mode: 'insensitive' } } },
+        ],
+      }
+    : {}
+
+  const [challans, total] = await Promise.all([
+    db.salesChallan.findMany({
+      where,
+      orderBy: [{ saleDate: 'desc' }, { createdAt: 'desc' }],
+      include: { customer: true, lines: true, payments: true },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.salesChallan.count({ where }),
+  ])
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -29,6 +49,9 @@ export default async function SalesPage() {
           </a>
         }
       />
+      <div className="mb-4">
+        <SearchBar q={q} placeholder="Search by customer or challan…" />
+      </div>
       {challans.length === 0 ? (
         <EmptyState message="No sales yet. Create your first challan to record a sale, compute profit, and track dues." />
       ) : (
@@ -75,6 +98,7 @@ export default async function SalesPage() {
           </div>
         </Card>
       )}
+      <Pagination page={page} totalPages={totalPages} params={{ q }} />
     </div>
   )
 }

@@ -3,17 +3,34 @@ import { db } from '@/lib/db'
 import { requireCan } from '@/lib/guards'
 import { can } from '@/lib/rbac'
 import { PageHeader, Card, Badge, EmptyState } from '@/components/ui'
+import { SearchBar, Pagination, parseListParams, PAGE_SIZE } from '@/components/list-controls'
+import type { Prisma } from '@prisma/client'
 
-export default async function SuppliersPage() {
+export default async function SuppliersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const user = await requireCan('suppliers.write')
   const writable = can(user.role, 'suppliers.write')
-  const suppliers = await db.supplier.findMany({
-    orderBy: [{ active: 'desc' }, { name: 'asc' }],
-  })
+  const sp = await searchParams
+  const { q, page } = parseListParams(sp)
+
+  const where: Prisma.SupplierWhereInput = q ? { name: { contains: q, mode: 'insensitive' } } : {}
+
+  const [suppliers, total] = await Promise.all([
+    db.supplier.findMany({
+      where,
+      orderBy: [{ active: 'desc' }, { name: 'asc' }],
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.supplier.count({ where }),
+  ])
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Suppliers" action={writable ? { href: '/suppliers/new', label: 'New supplier' } : undefined} />
+      <div className="mb-4">
+        <SearchBar q={q} placeholder="Search suppliers…" />
+      </div>
       {suppliers.length === 0 ? (
         <EmptyState message="No suppliers yet. Add your first supplier to start tracking purchases." />
       ) : (
@@ -48,6 +65,7 @@ export default async function SuppliersPage() {
           </div>
         </Card>
       )}
+      <Pagination page={page} totalPages={totalPages} params={{ q }} />
     </div>
   )
 }

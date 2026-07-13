@@ -3,14 +3,35 @@ import { db } from '@/lib/db'
 import { requireCan } from '@/lib/guards'
 import { ROLE_LABELS, type Role } from '@/lib/enums'
 import { PageHeader, Card, Badge, EmptyState } from '@/components/ui'
+import { SearchBar, Pagination, parseListParams, PAGE_SIZE } from '@/components/list-controls'
+import type { Prisma } from '@prisma/client'
 
-export default async function UsersPage() {
+export default async function UsersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   await requireCan('users.manage')
-  const users = await db.appUser.findMany({ orderBy: [{ active: 'desc' }, { name: 'asc' }] })
+  const sp = await searchParams
+  const { q, page } = parseListParams(sp)
+
+  const where: Prisma.AppUserWhereInput = q
+    ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { email: { contains: q, mode: 'insensitive' } }] }
+    : {}
+
+  const [users, total] = await Promise.all([
+    db.appUser.findMany({
+      where,
+      orderBy: [{ active: 'desc' }, { name: 'asc' }],
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.appUser.count({ where }),
+  ])
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader title="Users" action={{ href: '/users/new', label: 'New user' }} />
+      <div className="mb-4">
+        <SearchBar q={q} placeholder="Search users…" />
+      </div>
       {users.length === 0 ? (
         <EmptyState message="No users yet." />
       ) : (
@@ -45,6 +66,7 @@ export default async function UsersPage() {
           </div>
         </Card>
       )}
+      <Pagination page={page} totalPages={totalPages} params={{ q }} />
     </div>
   )
 }

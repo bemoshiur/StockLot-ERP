@@ -1,18 +1,38 @@
 import Link from 'next/link'
+import { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { requireCan } from '@/lib/guards'
 import { can } from '@/lib/rbac'
 import { PageHeader, Card, EmptyState } from '@/components/ui'
+import { SearchBar, Pagination, parseListParams, PAGE_SIZE } from '@/components/list-controls'
 import { shortDate } from '@/lib/format'
 
-export default async function InventoryPage() {
+export default async function InventoryPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const user = await requireCan('inventory.read')
   const writable = can(user.role, 'inventory.write')
-  const receipts = await db.purchaseReceipt.findMany({
-    orderBy: [{ receiptDate: 'desc' }, { createdAt: 'desc' }],
-    include: { supplier: true, lines: { select: { quantity: true } } },
-    take: 200,
-  })
+  const sp = await searchParams
+  const { q, page } = parseListParams(sp)
+
+  const where: Prisma.PurchaseReceiptWhereInput = q
+    ? {
+        OR: [
+          { challanNo: { contains: q } },
+          { supplier: { name: { contains: q, mode: 'insensitive' } } },
+        ],
+      }
+    : {}
+
+  const [receipts, total] = await Promise.all([
+    db.purchaseReceipt.findMany({
+      where,
+      orderBy: [{ receiptDate: 'desc' }, { createdAt: 'desc' }],
+      include: { supplier: true, lines: { select: { quantity: true } } },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.purchaseReceipt.count({ where }),
+  ])
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -31,6 +51,10 @@ export default async function InventoryPage() {
             </Link>
           )}
         </div>
+      </div>
+
+      <div className="mb-4">
+        <SearchBar q={q} placeholder="Search receipts…" />
       </div>
 
       {receipts.length === 0 ? (
@@ -73,6 +97,7 @@ export default async function InventoryPage() {
           </div>
         </Card>
       )}
+      <Pagination page={page} totalPages={totalPages} params={{ q }} />
     </div>
   )
 }
