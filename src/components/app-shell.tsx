@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { Nav } from '@/components/nav'
 import { logout } from '@/app/(app)/actions'
 import { ROLE_LABELS, type Role } from '@/lib/enums'
@@ -13,6 +15,7 @@ export function AppShell({
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
@@ -67,7 +70,16 @@ export function AppShell({
         )}
 
         {/* Content */}
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {children}
+          </motion.div>
+        </main>
       </div>
     </div>
   )
