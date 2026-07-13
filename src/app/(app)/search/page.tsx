@@ -11,9 +11,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const user = await requireUser()
   const q = (await searchParams).q?.trim() ?? ''
 
-  const canMasters = can(user.role, 'masters.read')
+  // Gate each result group by the SAME permission that gates its destination
+  // page — otherwise search would both preview data and link to a page that
+  // 403s. Note: `masters.read` is held by every role, so it must NOT be used here.
+  const canCustomers = can(user.role, 'customers.write')
+  const canStyles = can(user.role, 'styles.write')
+  const canSuppliers = can(user.role, 'suppliers.write')
   const canSales = can(user.role, 'sales.read')
-  const canInventory = can(user.role, 'inventory.read')
 
   type Hit = { href: string; title: string; subtitle?: string }
   const groups: { label: string; hits: Hit[] }[] = []
@@ -22,13 +26,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     const contains = { contains: q, mode: 'insensitive' as const }
 
     const [customers, styles, suppliers, challans] = await Promise.all([
-      canMasters || canSales
+      canCustomers
         ? db.customer.findMany({ where: { OR: [{ name: contains }, { phone: { contains: q } }] }, take: TAKE, orderBy: { name: 'asc' } })
         : Promise.resolve([]),
-      canMasters || canInventory
+      canStyles
         ? db.productStyle.findMany({ where: { OR: [{ styleName: contains }, { styleCode: { contains: q } }] }, take: TAKE, orderBy: { styleName: 'asc' } })
         : Promise.resolve([]),
-      canMasters
+      canSuppliers
         ? db.supplier.findMany({ where: { name: contains }, take: TAKE, orderBy: { name: 'asc' } })
         : Promise.resolve([]),
       canSales
