@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:1
 
-# StockLot ERP — production image (Next.js standalone + Prisma).
-# Debian slim base keeps the Prisma query-engine on glibc/openssl-3 (no musl surprises).
+# StockLot ERP — production image (Next.js + Prisma, pnpm).
+# Debian slim base keeps the Prisma query engine on glibc/openssl-3 (no musl
+# surprises). We ship the full node_modules rather than a traced standalone
+# bundle because pnpm generates the Prisma client + engine into its virtual
+# store (.pnpm/…), which file-tracing does not reliably capture.
 
 FROM node:22-bookworm-slim AS base
 ENV PNPM_HOME="/pnpm" PATH="/pnpm:$PATH"
@@ -16,7 +19,7 @@ COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# --- build: compile the standalone server bundle -----------------------------
+# --- build: compile the app --------------------------------------------------
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -28,23 +31,22 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     AUTH_SECRET="build-time-placeholder-secret"
 RUN pnpm build
 
-# --- runner: minimal runtime image -------------------------------------------
+# --- runner: runtime image ---------------------------------------------------
 FROM base AS runner
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 RUN groupadd --system --gid 1001 nodejs \
   && useradd --system --uid 1001 --gid nodejs nextjs
 
-# Standalone server + assets.
-COPY --from=build /app/.next/standalone ./
-COPY --from=build /app/.next/static ./.next/static
+# Full dependency tree (includes the generated Prisma client + query engine),
+# the build output, static assets, config, and the Prisma schema/migrations so
+# `prisma migrate deploy` can run from this image.
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
-# Prisma schema + migrations (so `prisma migrate deploy` can run in this image),
-# and the generated client/engine (guarantees it's present regardless of tracing).
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/next.config.ts ./next.config.ts
 COPY --from=build /app/prisma ./prisma
-COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
-COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 
 USER nextjs
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["node", "node_modules/next/dist/bin/next", "start"]
