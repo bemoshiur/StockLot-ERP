@@ -4,5 +4,5 @@ contact_links:
     url: https://stock-lot-erp.vercel.app
     about: Reproduce your issue or explore the ERP on the hosted demo before filing.
   - name: Questions & Discussions
-    url: https://github.com/bemoshiur/StockLot-ERP-/discussions
+    url: https://github.com/bemoshiur/StockLot-ERP/discussions
     about: Ask questions, share ideas, or discuss usage. Not sure it's a bug? Start here.

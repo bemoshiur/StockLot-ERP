@@ -75,7 +75,7 @@ This is how the live demo is deployed.
    connection strings (see [Database (Neon)](#database-neon)).
 
 2. **Connect the repository.** In the Vercel dashboard, import
-   `github.com/bemoshiur/StockLot-ERP-`. Vercel auto-detects Next.js and uses
+   `github.com/bemoshiur/StockLot-ERP`. Vercel auto-detects Next.js and uses
    **pnpm** (the repo ships a `pnpm-lock.yaml`).
 
 3. **Set the environment variables.** Under **Project → Settings →
@@ -140,7 +140,7 @@ from a small Docker image.
 Container Registry by the release workflow:
 
 ```bash
-docker pull ghcr.io/bemoshiur/stocklot-erp-:latest
+docker pull ghcr.io/bemoshiur/stocklot-erp:latest
 ```
 
 **Option 2 — Build locally:**
@@ -159,7 +159,7 @@ docker run -d \
   -e DIRECT_URL="postgresql://…/DB?sslmode=require" \
   -e AUTH_SECRET="$(openssl rand -base64 33)" \
   -p 3000:3000 \
-  ghcr.io/bemoshiur/stocklot-erp-:latest
+  ghcr.io/bemoshiur/stocklot-erp:latest
 ```
 
 Substitute `stocklot-erp` for the image name if you built it locally. The app is
@@ -177,7 +177,7 @@ migrations against your database using the **direct** connection
   docker run --rm \
     -e DATABASE_URL="…" \
     -e DIRECT_URL="…" \
-    ghcr.io/bemoshiur/stocklot-erp-:latest \
+    ghcr.io/bemoshiur/stocklot-erp:latest \
     pnpm prisma migrate deploy
   ```
 

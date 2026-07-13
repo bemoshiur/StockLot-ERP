@@ -8,7 +8,7 @@
 [![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white)](https://neon.tech)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Build](https://github.com/bemoshiur/StockLot-ERP-/actions/workflows/ci.yml/badge.svg)](https://github.com/bemoshiur/StockLot-ERP-/actions/workflows/ci.yml)
+[![Build](https://github.com/bemoshiur/StockLot-ERP/actions/workflows/ci.yml/badge.svg)](https://github.com/bemoshiur/StockLot-ERP/actions/workflows/ci.yml)
 
 StockLot ERP is a collaborative, multi-user web ERP for a Bangladeshi surplus/overstock lot apparel wholesale business. It gives a small team (3–8 people) one shared, always-live source of truth for master data, sales, receivables, inventory, purchases, expenses, treasury, and automatic profit/summary reporting. It is built for phones on the market floor or in the warehouse and for desktops in the office, in English, with all figures in BDT (৳).
 
@@ -103,8 +103,8 @@ A tour of the live app (light mode). More in [`docs/screenshots/`](./docs/screen
 ## Quick start
 
 ```bash
-git clone https://github.com/bemoshiur/StockLot-ERP-.git
-cd StockLot-ERP-
+git clone https://github.com/bemoshiur/StockLot-ERP.git
+cd StockLot-ERP
 cp .env.example .env          # set DATABASE_URL, DIRECT_URL, AUTH_SECRET
 pnpm install                  # postinstall runs `prisma generate`
 pnpm prisma migrate deploy    # apply migrations
@@ -125,7 +125,7 @@ docker run -p 3000:3000 \
   -e DATABASE_URL="postgres://…" \
   -e DIRECT_URL="postgres://…" \
   -e AUTH_SECRET="your-secret" \
-  ghcr.io/bemoshiur/stocklot-erp-:latest
+  ghcr.io/bemoshiur/stocklot-erp:latest
 ```
 
 ## Roles & permissions

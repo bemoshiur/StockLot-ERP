@@ -104,5 +104,5 @@ sold, ৳852,159 collected).
 - Passwords are hashed with bcryptjs; sessions use JWT with the user role carried
   in the token. Every server action validates input with Zod before writing.
 
-[Unreleased]: https://github.com/bemoshiur/StockLot-ERP-/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/bemoshiur/StockLot-ERP-/releases/tag/v1.0.0
+[Unreleased]: https://github.com/bemoshiur/StockLot-ERP/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/bemoshiur/StockLot-ERP/releases/tag/v1.0.0

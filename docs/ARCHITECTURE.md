@@ -9,7 +9,7 @@ UI is English, and the app is built to work on phones (market/warehouse) and des
 (office).
 
 - **Live demo:** https://stock-lot-erp.vercel.app
-- **Repo:** https://github.com/bemoshiur/StockLot-ERP- (MIT)
+- **Repo:** https://github.com/bemoshiur/StockLot-ERP (MIT)
 - **Maintainer:** Moshiur Rahman (Public Pulse, moshiur@publicpulse.com.bd)
 
 > **Heads up on Next.js 16.** The middleware convention was renamed to *proxy* — the
@@ -340,7 +340,7 @@ for migrations), `AUTH_SECRET`.
 
 **Deployment:** Vercel is primary (region `sin1`, co-located with Neon). The app is also
 self-hostable from a standalone Next.js build via the Docker image published to
-`ghcr.io/bemoshiur/stocklot-erp-`.
+`ghcr.io/bemoshiur/stocklot-erp`.
 
 Welcome aboard — keep business rules pure and tested, guard every action with
 `requireCan`, and let the June '26 reconciliation be your ground truth.

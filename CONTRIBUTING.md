@@ -3,7 +3,7 @@
 Thanks for your interest in improving **StockLot ERP** — a collaborative, multi-user web ERP that replaces the monthly Excel workbook used to run a Bangladeshi StockLot (surplus / overstock / lot apparel) wholesale business. Whether you're fixing a typo, filing a bug, or shipping a whole module, contributions are welcome. 🎉
 
 - **Live demo:** https://stock-lot-erp.vercel.app
-- **Repository:** https://github.com/bemoshiur/StockLot-ERP-
+- **Repository:** https://github.com/bemoshiur/StockLot-ERP
 - **License:** [MIT](./LICENSE)
 - **Maintainer:** Moshiur Rahman (Public Pulse, <moshiur@publicpulse.com.bd>)
 

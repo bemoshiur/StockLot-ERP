@@ -8,7 +8,7 @@ body:
       value: |
         Thanks for helping improve **StockLot ERP**.
 
-        Please search [existing issues](https://github.com/bemoshiur/StockLot-ERP-/issues) first — your idea may already be under discussion. If it is a broad or open-ended idea, consider starting a [Discussion](https://github.com/bemoshiur/StockLot-ERP-/discussions) instead.
+        Please search [existing issues](https://github.com/bemoshiur/StockLot-ERP/issues) first — your idea may already be under discussion. If it is a broad or open-ended idea, consider starting a [Discussion](https://github.com/bemoshiur/StockLot-ERP/discussions) instead.
 
   - type: textarea
     id: problem
